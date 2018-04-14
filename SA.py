@@ -1,5 +1,23 @@
 import numpy as np
 
+
+class Ruch:
+    def __init__(self, wsp, s):
+        self.orientacja = 0
+        self.wsp = wsp
+        self.wylozonePlytki = s
+        self.konwertujWspolrzedne()
+
+    def konwertujWspolrzedne(self):
+        if self.wsp[0] == "1" or self.wsp[0] == "0":
+            self.wspX = zmianaWspolrzednych(self.wsp[2])
+            self.wspY = int(self.wsp[0:2])-1
+            self.orientacja = 1
+        else:
+            self.wspX = zmianaWspolrzednych(self.wsp[0])
+            self.wspY = int(self.wsp[1:3])
+
+
 premieSlowne = np.zeros((15, 15), dtype=int)
 punktacjaLiter = {
         'A': 1,
@@ -51,14 +69,16 @@ for i in range(1, 5):
 print(premieSlowne)
 plansza = np.zeros((15, 15), dtype=str)
 print(plansza)
-def liczeniePremiiSlownych(x, y, l, o):
+def liczeniePremiiSlownych(ruch):
     sum = 0
-    for a in range(l):
-        if o == 0:
+    x = ruch.wspX
+    y = ruch.wspY
+    for a, i in enumerate(ruch.wylozonePlytki):
+        if ruch.orientacja == 1:
             sum += premieSlowne[(x+a, y)]
         else :
             sum += premieSlowne[(x, y+a)]
-    print("sum:", sum)
+    print("suma premii słownych:", sum)
     return sum
 
 
@@ -95,8 +115,11 @@ def zmianaWspolrzednych(a):
         return 14
 
 
-def dodajSlowo(slowo, x, y, o):
-    slowo = slowo.upper()
+def dodajSlowo(klasa):
+    slowo = klasa.wylozonePlytki.upper()
+    x = klasa.wspX
+    y = klasa.wspY
+    o = klasa.orientacja
     for litera in slowo:
         plansza[(x, y)] = litera
         if o == 0:
@@ -105,42 +128,30 @@ def dodajSlowo(slowo, x, y, o):
             x += 1
 
 
-def czySieKrzyzuje(noweSlowo, x, y):
-        for i,j in enumerate(noweSlowo):
-            print(i,j)
-            if plansza[(x+i, y-1)] or plansza[(x+i, y+1)] or plansza[(x, y+i) or plansza[(x, y-i)]]:
-                return True
-        return False
+def czySieKrzyzuje(ruch):
+    noweSlowo = ruch.wylozonePlytki
+    x = ruch.wspX
+    y = ruch.wspY
+    for i, j in enumerate(noweSlowo):
+        print(i, j)
+        if plansza[(x, y)]:
+            return False
+        if plansza[(x+i, y-1)] or plansza[(x+i, y+1)] or plansza[(x, y+i) or plansza[(x, y-i)]]:
+            return True
+    return False
 
 
 wspolrzedne = "04c"     ##input("słowo zaczyna się od:")
-if wspolrzedne[0] == "1" or wspolrzedne[0] == "0":
-    startSlowaX = zmianaWspolrzednych(wspolrzedne[2])
-    startSlowaY = int(wspolrzedne[0:2])
-    o = 1
-else:
-    startSlowaX = zmianaWspolrzednych(wspolrzedne[0])
-    startSlowaY = int(wspolrzedne[1:3])
-    o = 0
 slowo = "GŻegŻÓŁKA".upper()
+pierwszy = Ruch(wspolrzedne, slowo)
+drugi = Ruch("b11", "lama")
+trzeci = Ruch("02b,", "kot")
 punktySlowa = 0
 for i in slowo:
     punktySlowa += punktacjaLiter[i]
-print(punktySlowa)
-print(startSlowaX, startSlowaY, o, liczeniePremiiSlownych(startSlowaX, startSlowaY-1, slowo.__len__(), o))
-print("wartość punktowa słowa: " + str(punktySlowa*liczeniePremiiSlownych(startSlowaX, startSlowaY-1, slowo.__len__(), o)))
-dodajSlowo(slowo,startSlowaX,startSlowaY-1,o)
-dodajSlowo("poń",4,5,0)
-print(plansza)
-slowo2 = "nowe".upper()
-wspolrzedne2x=0
-wspolrzedne2y=7
-poprawnie = czySieKrzyzuje(slowo2, wspolrzedne2x, wspolrzedne2y)
-dodajSlowo(slowo2, wspolrzedne2x, wspolrzedne2y, 1) if poprawnie else print("nie można dodać bo się nie krzyżuje")
-print(plansza)
-
-wspolrzedne2x=8
-wspolrzedne2y=3
-poprawnie = czySieKrzyzuje(slowo2, wspolrzedne2x, wspolrzedne2y)
-dodajSlowo(slowo2, wspolrzedne2x, wspolrzedne2y, 0) if poprawnie else print("nie można dodać bo się nie krzyżuje")
+print("wartość punktowa słowa: " + str(punktySlowa*liczeniePremiiSlownych(pierwszy)))
+dodajSlowo(pierwszy)
+dodajSlowo(drugi)
+poprawnie = czySieKrzyzuje(trzeci)
+dodajSlowo(trzeci) if poprawnie else print("nie można dodać bo się nie krzyżuje")
 print(plansza)
