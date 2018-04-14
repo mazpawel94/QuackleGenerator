@@ -15,7 +15,7 @@ class Ruch:
             self.orientacja = 1
         else:
             self.wspX = zmianaWspolrzednych(self.wsp[0])
-            self.wspY = int(self.wsp[1:3])
+            self.wspY = int(self.wsp[1:3])-1
 
 
 premieSlowne = np.zeros((15, 15), dtype=int)
@@ -133,19 +133,77 @@ def czySieKrzyzuje(ruch):
     x = ruch.wspX
     y = ruch.wspY
     for i, j in enumerate(noweSlowo):
-        print(i, j)
+        print (x, y, str(plansza[(x, y)]))
         if plansza[(x, y)]:
             return False
-        if plansza[(x+i, y-1)] or plansza[(x+i, y+1)] or plansza[(x, y+i) or plansza[(x, y-i)]]:
+        print(i, j)
+        if plansza[(x+i, y-1)] or plansza[(x+i, y+1)] or plansza[(x, y+i)] or plansza[(x, y-i)] or plansza[(x - 1, y + i)] or plansza[(x + 1, y + i)] or plansza[(x, y+1)] or plansza[(x, y-1)]:
             return True
     return False
+#x = 2, y = 1
+
+def sprawdzPowstaleSlowa(ruch):
+    x = ruch.wspX
+    y = ruch.wspY
+    list = []
+    string = ""
+    if ruch.orientacja == 1:
+        while plansza[(x, y)]:
+            x -= 1
+        x += 1
+        while plansza[(x, y)]:
+            string += str(plansza[(x, y)])
+            x += 1
+        if string.__len__() > 1:
+            list.append(string)
+        x = ruch.wspX
+        y = ruch.wspY
+        for i in ruch.wylozonePlytki:
+            string = ""
+            while plansza[(x, y)]:
+                y -= 1
+            y += 1
+            while plansza[(x, y)]:
+                string += str(plansza[(x, y)])
+                y += 1
+            if string.__len__() > 1:
+                list.append(string)
+            x += 1
+            y = ruch.wspY
+    else:
+        while plansza[(x, y)]:
+            y -= 1
+        y += 1
+        while plansza[(x, y)]:
+            string += str(plansza[(x, y)])
+            y += 1
+        if string.__len__() > 1:
+            list.append(string)
+        x = ruch.wspX
+        y = ruch.wspY
+        for i in ruch.wylozonePlytki:
+            string = ""
+            while plansza[(x, y)]:
+                x -= 1
+            x += 1
+            while plansza[(x, y)]:
+                string += str(plansza[(x, y)])
+                x += 1
+            if string.__len__() > 1:
+                list.append(string)
+            y += 1
+            x = ruch.wspX
+
+    print(list)
 
 
 wspolrzedne = "04c"     ##input("słowo zaczyna się od:")
 slowo = "GŻegŻÓŁKA".upper()
 pierwszy = Ruch(wspolrzedne, slowo)
 drugi = Ruch("b11", "lama")
-trzeci = Ruch("02b,", "kot")
+trzeci = Ruch("03b", "kot")
+czwarty = Ruch("02c", "j")
+piaty = Ruch("03e", "eria")
 punktySlowa = 0
 for i in slowo:
     punktySlowa += punktacjaLiter[i]
@@ -154,4 +212,10 @@ dodajSlowo(pierwszy)
 dodajSlowo(drugi)
 poprawnie = czySieKrzyzuje(trzeci)
 dodajSlowo(trzeci) if poprawnie else print("nie można dodać bo się nie krzyżuje")
+sprawdzPowstaleSlowa(trzeci)
+poprawnie = czySieKrzyzuje(czwarty)
+dodajSlowo(czwarty) if poprawnie else print("nie można dodać bo się nie krzyżuje")
+sprawdzPowstaleSlowa(czwarty)
+dodajSlowo(piaty) if czySieKrzyzuje(piaty) else print("nie można dodać bo się nie krzyżuje")
+sprawdzPowstaleSlowa(piaty)
 print(plansza)
