@@ -146,6 +146,7 @@ def dodaj_slowo(klasa):  # dodaje słowo na planszę
     y = klasa.wspY
     o = klasa.pionowo
     for l in slowo_do_dodania:
+        print("x, y:", x, y)
         plansza_tymczasowa[(x, y)] = l
         if not o:
             y += 1
@@ -165,6 +166,9 @@ def sprawdz_czy_sie_krzyzuje(ruch):
             return True
     return False
 #  x = 2, y = 1
+
+
+print(type(plansza_tymczasowa[(1, 1)]), type(5))
 
 
 def sprawdz_powstale_slowa(ruch):
@@ -260,13 +264,16 @@ for r in ruchy:
         aktualizuj_plansze()
     czysc_plansze()
 
-litera = 'ę'
+litera = 'topos'
 generowany = Ruch("01a", litera)
 generowany.wylozone_plytki = litera
-for i in range(14):
-    for j in range(14):
-        generowany.wspY = i
-        generowany.wspX = j
+for i in range(15):
+    for j in range(15):
+        if i + len(litera) < 15 and j + len(litera) < 15:
+            generowany.wspY = j
+            generowany.wspX = i
+        else:
+            continue
         dodaj_slowo(generowany) if sprawdz_czy_sie_krzyzuje(generowany) else ""
         if sprawdz_powstale_slowa(generowany):
             print("wszystko ok")
