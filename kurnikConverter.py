@@ -11,40 +11,7 @@ f2.write("#player1 " + player1 + " " + player1 + "\n")
 f2.write("#player2 " + player2 + " " + player2 + "\n")
 f.readline()
 f.readline()
-actually_move = ""
-
-
-def zmiana_wspolrzednych(a):
-    if a == "a":
-        return 0
-    if a == "b":
-        return 1
-    if a == "c":
-        return 2
-    if a == "d":
-        return 3
-    if a == "e":
-        return 4
-    if a == "f":
-        return 5
-    if a == "g":
-        return 6
-    if a == "h":
-        return 7
-    if a == "i":
-        return 8
-    if a == "j":
-        return 9
-    if a == "k":
-        return 10
-    if a == "l":
-        return 11
-    if a == "m":
-        return 12
-    if a == "n":
-        return 13
-    if a == "o":
-        return 14
+points = "+0"
 
 
 def change_coordinates(x):  # ruch w poziomie: minus, w pionie: plus
@@ -55,58 +22,44 @@ def change_coordinates(x):  # ruch w poziomie: minus, w pionie: plus
     return correct.upper()
 
 
-for i in range(count - 4):  # f.readline():
-    points = "+0"
-    move_letters = ""
+def write_to_file(player_number):
     coordinates = ""
+    points = ""
+    letters = move[player_number].strip()[:-1].upper().replace("_", "?")  # porządkujemy ciag liter na stojaku
+    if not move[player_number+1].isalpha() or move[player_number+1] == "P":  # czyli jeżeli nie ma wymiany,
+        #  bo wtedy w tym elemencie mamy ciąg wymienianych liter
+        coordinates = change_coordinates(move[player_number+1])
+        if move[player_number+1] != "(C)" and move[player_number+1] != "P" and move[player_number+1] != "(T)" and move[player_number+1] != "(W)":
+            # jeżeli wystąpił normalny ruch a nie wymiana etc.
+            x = move[player_number+2].find("/")
+            if x != -1:
+                move_letters = move[player_number+2][:x]
+            else:
+                move_letters = move[player_number+2]
+            points = move[player_number+3]
+        else:
+            coordinates = "-"
+            move_letters = ""
+    else:
+        move_letters = "".join("-" + move[player_number+1])
+
+    q = move_letters.find("[")
+    move_letters = move_letters.upper()
+    if q != -1:
+        print(q)
+        blank = move[player_number+2][q + 1]
+        move_letters = "".join(move_letters[:q] + blank + move_letters[q + 3:])
+    if player_number == 0:
+        f2.write(">" + player2 + " " + letters + " " + coordinates + " " + move_letters + " " + points + "\n")
+    else:
+        f2.write(">" + player1 + " " + letters + " " + coordinates + " " + move_letters + " " + points + "\n")
+
+
+
+for i in range(count - 4):
     move = f.readline().strip('\n').strip('\r').split(" ")  # wczytujemy linię z pominięciem znaków przejścia i dzielimy
     second_player = move[0].strip()[:-1].replace("_", "")  # drugi gracz ma dodatkowy element, wiec musimy ich rozroznic
     if second_player.isalpha():  # jeżeli pierwszym elementem jest ciąg liter a nie liczba, czyli w praktyce drugi gracz
-        letters = move[0].strip()[:-1].upper().replace("_", "?")  # porządkujemy ciag liter na stojaku
-        if not move[1].isalpha() or move[1] == "P":  # czyli jeżeli nie ma wymiany, bo wtedy w tym elemencie
-            #  mamy ciąg wymienianych liter
-            coordinates = change_coordinates(move[1])
-            if move[1] != "(C)" and move[1] != "P" and move[1] != "(T)" and move[1] != "(W)":
-                # jeżeli wystąpił normalny ruch a nie wymiana etc.
-                x = move[2].find("/")
-                if x != -1:
-                    move_letters = move[2][:x]
-                else:
-                    move_letters = move[2]
-                points = move[3]
-            else:
-                coordinates = "-"
-        else:
-            move_letters = "".join("-" + move[1])
-        q = move_letters.find("[")
-        move_letters = move_letters.upper()
-        if q != -1:
-            print(q)
-            blank = move[2][q+1]
-            move_letters = "".join(move_letters[:q] + blank + move_letters[q+3:])
-        f2.write(">" + player2 + " " + letters + " " + coordinates + " " + move_letters + " " + points + "\n")
+        write_to_file(0)
     else:  # czyli pierwszy gracz danej kolejki
-        letters = move[1].strip()[:-1].upper().replace("_", "?")
-        if not move[2].isalpha():
-            coordinates = change_coordinates(move[2])
-            if move[2] != "(C)" and move[2] != "P" and move[2] != "(T)" and move[2] != "(W)":
-                # jeżeli wystąpił normalny ruch a nie wymiana etc.
-                x = move[3].find("/")
-                if x != -1:
-                    move_letters = move[3][:x]
-                else:
-                    move_letters = move[3]
-                points = move[4]
-            else:
-                coordinates = "-"
-        else:
-            move_letters = "".join("-" + move[2])
-            points = "+0"
-        q = move_letters.find("[")
-        move_letters = move_letters.upper()
-        if q != -1:
-            print(q)
-            blank = move[3][q+1]
-            q = move_letters.find("[")
-            move_letters = "".join(move_letters[:q] + blank + move_letters[q+3:])
-        f2.write(">" + player1 + " " + letters + " " + coordinates + " " + move_letters + " " + points + "\n")
+        write_to_file(1)

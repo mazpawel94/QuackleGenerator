@@ -1,25 +1,7 @@
 import numpy as np
+import codecs
 
-
-class Ruch:
-    def __init__(self, wsp, s):
-        self.orientacja = 0
-        self.wsp = wsp
-        self.wylozonePlytki = s
-        self.konwertujWspolrzedne()
-
-    def konwertujWspolrzedne(self):
-        if self.wsp[0] == "1" or self.wsp[0] == "0":
-            self.wspX = zmianaWspolrzednych(self.wsp[2])
-            self.wspY = int(self.wsp[0:2])-1
-            self.orientacja = 1
-        else:
-            self.wspX = zmianaWspolrzednych(self.wsp[0])
-            self.wspY = int(self.wsp[1:3])-1
-
-
-premieSlowne = np.zeros((15, 15), dtype=int)
-punktacjaLiter = {
+punktacja_liter = {
         'A': 1,
         'Ą': 5,
         'B': 3,
@@ -52,37 +34,80 @@ punktacjaLiter = {
         'Z': 1,
         'Ź': 9,
         'Ż': 5}
-premieSlowne[(0, 0)] = 3
-premieSlowne[(0, 7)] = 3
-premieSlowne[(0, 14)] = 3
-premieSlowne[(7, 0)] = 3
-premieSlowne[(7, 14)] = 3
-premieSlowne[(14, 0)] = 3
-premieSlowne[(14, 7)] = 3
-premieSlowne[(7, 7)] = 2
-premieSlowne[(14, 14)] = 3
-for i in range(1, 5):
-        premieSlowne[(i, i)] = 2
-        premieSlowne[(i, 14 - i)] = 2
-        premieSlowne[(14 - i, i)] = 2
-        premieSlowne[(14 - i, 14 - i)] = 2
-print(premieSlowne)
+premie_slowne = np.zeros((15, 15), dtype=int)
+premie_literowe = np.zeros((15, 15), dtype=int)
 plansza = np.zeros((15, 15), dtype=str)
-print(plansza)
-def liczeniePremiiSlownych(ruch):
-    sum = 0
+plansza_tymczasowa = np.zeros((15, 15), dtype=str)
+
+def wypelnij_premie():
+    premie_slowne[(0, 0)] = 3
+    premie_slowne[(0, 7)] = 3
+    premie_slowne[(0, 14)] = 3
+    premie_slowne[(7, 0)] = 3
+    premie_slowne[(7, 14)] = 3
+    premie_slowne[(14, 0)] = 3
+    premie_slowne[(14, 7)] = 3
+    premie_slowne[(7, 7)] = 2
+    premie_slowne[(14, 14)] = 3
+    for a in range(1, 5):
+        premie_slowne[(a, a)] = 2
+        premie_slowne[(a, 14 - a)] = 2
+        premie_slowne[(14 - a, a)] = 2
+        premie_slowne[(14 - a, 14 - a)] = 2
+    premie_literowe[(0, 3)] = 2
+    premie_literowe[(0, 11)] = 2
+    premie_literowe[(3, 0)] = 2
+    premie_literowe[(11, 0)] = 2
+    premie_literowe[(3, 14)] = 2
+    premie_literowe[(11, 14)] = 2
+    premie_literowe[(14, 3)] = 2
+    premie_literowe[(14, 11)] = 2
+
+
+wypelnij_premie()
+
+
+class Ruch:
+
+    def __init__(self, wsp, plytki):
+        self.pionowo = False
+        self.wsp = wsp
+        self.wylozone_plytki = plytki
+        self.konwertuj_wspolrzedne()
+
+    def konwertuj_wspolrzedne(self):
+        if self.wsp[0] == "1" or self.wsp[0] == "0":
+            self.wspX = zmiana_wspolrzednych(self.wsp[2])
+            self.wspY = int(self.wsp[0:2])-1
+            self.pionowo = True
+        else:
+            self.wspX = zmiana_wspolrzednych(self.wsp[0])
+            self.wspY = int(self.wsp[1:3])-1
+
+
+slownik = set()
+s = codecs.open("slownikdo7.txt", "r", "utf-8")
+slowo = s.readline().strip()
+slownik.add(slowo)
+while slowo:
+    slowo = s.readline().strip()
+    slownik.add(slowo)
+
+
+def liczenie_premii_slownych(ruch):
+    suma = 0
     x = ruch.wspX
     y = ruch.wspY
-    for a, i in enumerate(ruch.wylozonePlytki):
-        if ruch.orientacja == 1:
-            sum += premieSlowne[(x+a, y)]
-        else :
-            sum += premieSlowne[(x, y+a)]
-    print("suma premii słownych:", sum)
-    return sum
+    for a in range(len(ruch.wylozone_plytki)):
+        if ruch.pionowo:
+            suma += premie_slowne[(x + a, y)]
+        else:
+            suma += premie_slowne[(x, y + a)]
+    print("suma premii słownych:", suma)
+    return suma
 
 
-def zmianaWspolrzednych(a):
+def zmiana_wspolrzednych(a):
     if a == "a":
         return 0
     if a == "b":
@@ -115,107 +140,138 @@ def zmianaWspolrzednych(a):
         return 14
 
 
-def dodajSlowo(klasa):
-    slowo = klasa.wylozonePlytki.upper()
+def dodaj_slowo(klasa):  # dodaje słowo na planszę
+    slowo_do_dodania = klasa.wylozone_plytki.upper()
     x = klasa.wspX
     y = klasa.wspY
-    o = klasa.orientacja
-    for litera in slowo:
-        plansza[(x, y)] = litera
-        if o == 0:
+    o = klasa.pionowo
+    for l in slowo_do_dodania:
+        plansza_tymczasowa[(x, y)] = l
+        if not o:
             y += 1
         else:
             x += 1
 
 
-def czySieKrzyzuje(ruch):
-    noweSlowo = ruch.wylozonePlytki
+def sprawdz_czy_sie_krzyzuje(ruch):
+    nowe_slowo = ruch.wylozone_plytki
     x = ruch.wspX
     y = ruch.wspY
-    for i, j in enumerate(noweSlowo):
-        print (x, y, str(plansza[(x, y)]))
+    for l in range(len(nowe_slowo)):
         if plansza[(x, y)]:
             return False
-        print(i, j)
-        if plansza[(x+i, y-1)] or plansza[(x+i, y+1)] or plansza[(x, y+i)] or plansza[(x, y-i)] or plansza[(x - 1, y + i)] or plansza[(x + 1, y + i)] or plansza[(x, y+1)] or plansza[(x, y-1)]:
+        if plansza[(x + l, y - 1)] or plansza[(x + l, y + 1)] or plansza[(x, y + l)] or plansza[(x, y - l)] \
+                or plansza[(x - 1, y + l)] or plansza[(x + 1, y + l)] or plansza[(x, y + 1)] or plansza[(x, y - 1)]:
             return True
     return False
-#x = 2, y = 1
+#  x = 2, y = 1
 
-def sprawdzPowstaleSlowa(ruch):
+
+def sprawdz_powstale_slowa(ruch):
     x = ruch.wspX
     y = ruch.wspY
-    list = []
+    powstale_slowa = []
     string = ""
-    if ruch.orientacja == 1:
-        while plansza[(x, y)]:
+    if ruch.pionowo:
+        while plansza_tymczasowa[(x, y)]:
             x -= 1
         x += 1
-        while plansza[(x, y)]:
-            string += str(plansza[(x, y)])
+        while plansza_tymczasowa[(x, y)]:
+            string += str(plansza_tymczasowa[(x, y)])
             x += 1
         if string.__len__() > 1:
-            list.append(string)
+            powstale_slowa.append(string)
         x = ruch.wspX
         y = ruch.wspY
-        for i in ruch.wylozonePlytki:
+        for _ in ruch.wylozone_plytki:
             string = ""
-            while plansza[(x, y)]:
+            while plansza_tymczasowa[(x, y)]:
                 y -= 1
             y += 1
-            while plansza[(x, y)]:
-                string += str(plansza[(x, y)])
+            while plansza_tymczasowa[(x, y)]:
+                string += str(plansza_tymczasowa[(x, y)])
                 y += 1
             if string.__len__() > 1:
-                list.append(string)
+                powstale_slowa.append(string)
             x += 1
             y = ruch.wspY
     else:
-        while plansza[(x, y)]:
+        while plansza_tymczasowa[(x, y)]:
             y -= 1
         y += 1
-        while plansza[(x, y)]:
-            string += str(plansza[(x, y)])
+        while plansza_tymczasowa[(x, y)]:
+            string += str(plansza_tymczasowa[(x, y)])
             y += 1
         if string.__len__() > 1:
-            list.append(string)
+            powstale_slowa.append(string)
         x = ruch.wspX
         y = ruch.wspY
-        for i in ruch.wylozonePlytki:
+        for _ in ruch.wylozone_plytki:
             string = ""
-            while plansza[(x, y)]:
+            while plansza_tymczasowa[(x, y)]:
                 x -= 1
             x += 1
-            while plansza[(x, y)]:
-                string += str(plansza[(x, y)])
+            while plansza_tymczasowa[(x, y)]:
+                string += str(plansza_tymczasowa[(x, y)])
                 x += 1
             if string.__len__() > 1:
-                list.append(string)
+                powstale_slowa.append(string)
             y += 1
             x = ruch.wspX
 
-    print(list)
+    print(powstale_slowa)
+    for slowo_w_osps in powstale_slowa:
+        if slowo_w_osps in slownik:
+            print("slowo {} jest w słowniku".format(slowo_w_osps))
+        else:
+            print("słowa {} nie ma w słowniku".format(slowo_w_osps))
+            return False
+    return True
 
 
-wspolrzedne = "04c"     ##input("słowo zaczyna się od:")
+def czysc_plansze():
+    plansza_tymczasowa[:][:] = plansza[:][:]
+
+
+def aktualizuj_plansze():
+    plansza[:][:] = plansza_tymczasowa[:][:]
+
+
+ruchy = []
+wspolrzedne = "04c"  # input("słowo zaczyna się od:")
 slowo = "GŻegŻÓŁKA".upper()
-pierwszy = Ruch(wspolrzedne, slowo)
-drugi = Ruch("b11", "lama")
-trzeci = Ruch("03b", "kot")
-czwarty = Ruch("02c", "j")
-piaty = Ruch("03e", "eria")
-punktySlowa = 0
+ruchy.append(Ruch(wspolrzedne, slowo))
+ruchy.append(Ruch("b11", "lama"))
+ruchy.append(Ruch("03b", "kot"))
+ruchy.append(Ruch("02c", "j"))
+ruchy.append(Ruch("03e", "eria"))
+
+
+punkty_slowa = 0
 for i in slowo:
-    punktySlowa += punktacjaLiter[i]
-print("wartość punktowa słowa: " + str(punktySlowa*liczeniePremiiSlownych(pierwszy)))
-dodajSlowo(pierwszy)
-dodajSlowo(drugi)
-poprawnie = czySieKrzyzuje(trzeci)
-dodajSlowo(trzeci) if poprawnie else print("nie można dodać bo się nie krzyżuje")
-sprawdzPowstaleSlowa(trzeci)
-poprawnie = czySieKrzyzuje(czwarty)
-dodajSlowo(czwarty) if poprawnie else print("nie można dodać bo się nie krzyżuje")
-sprawdzPowstaleSlowa(czwarty)
-dodajSlowo(piaty) if czySieKrzyzuje(piaty) else print("nie można dodać bo się nie krzyżuje")
-sprawdzPowstaleSlowa(piaty)
+    punkty_slowa += punktacja_liter[i]
+print("wartość punktowa słowa: " + str(punkty_slowa * liczenie_premii_slownych(ruchy[0])))
+dodaj_slowo(ruchy[0])
+aktualizuj_plansze()
+for r in ruchy:
+    dodaj_slowo(r) if sprawdz_czy_sie_krzyzuje(r) else print("nie można dodać bo się nie krzyżuje")
+    if sprawdz_powstale_slowa(r):
+        print("wszystko ok")
+        aktualizuj_plansze()
+    czysc_plansze()
+
+litera = 'ę'
+generowany = Ruch("01a", litera)
+generowany.wylozone_plytki = litera
+for i in range(14):
+    for j in range(14):
+        generowany.wspY = i
+        generowany.wspX = j
+        dodaj_slowo(generowany) if sprawdz_czy_sie_krzyzuje(generowany) else ""
+        if sprawdz_powstale_slowa(generowany):
+            print("wszystko ok")
+            aktualizuj_plansze()
+        czysc_plansze()
+
+
 print(plansza)
